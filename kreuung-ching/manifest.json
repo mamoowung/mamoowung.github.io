@@ -1,0 +1,17 @@
+{
+  "background_color": "#FFF",
+  "display": "standalone",
+  "name": "เครื่องฉิ่ง",
+  "short_name": "เครื่องฉิ่ง",
+  "version": "org.mamoowung.kreuungching",
+  "description": "ฉิ่งอัตโนมัติเพื่อฝึกตนตรีไทย",
+  "author": "Panit Mamoowung",
+  "icons": [
+    {
+      "src": "res/ching.png",
+      "type": "image/png",
+      "sizes": "undefinedxundefined"
+    }
+  ],
+  "start_url": "index.html"
+}

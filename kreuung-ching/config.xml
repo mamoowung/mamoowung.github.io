@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="org.mamoowung.kreuungching" version="1.6" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>เครื่องฉิ่ง</name>
+    <description>ฉิ่งอัตโนมัติเพื่อฝึกตนตรีไทย</description>
+    <author email="mamoowung@gmail.com">Panit Mamoowung</author>
+    <icon src="res/ching.png" />
+    <splash src="res/ching.png" />
+    <preference name="android-minSdkVersion" value="21" />
+    <preference name="permissions" value="none" />
+</widget>
