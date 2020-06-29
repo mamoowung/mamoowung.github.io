@@ -64,7 +64,7 @@ System.register(["./lib/assert.js"], function (exports_1, context_1) {
                 tick() { return this._tick; }
                 playing() { return this._playing; }
                 msTickPeriod() { return this._msTickPeriod; }
-                chun() {
+                get chun() {
                     return this._chun;
                 }
                 chunSet(chun) {

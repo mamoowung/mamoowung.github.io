@@ -20,8 +20,18 @@
 */
 System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js", "./lib/assert.js", "./lib/error_handler.js", "./messages.js"], function (exports_1, context_1) {
     "use strict";
-    var bpm_js_1, glongset_js_1, instrument_js_1, patterns_js_1, assert_js_1, error_handler_js_1, messages, patterns, cordova, device, MSG, DrumPattern, AppChing, appChing;
+    var bpm_js_1, glongset_js_1, instrument_js_1, patterns_js_1, assert_js_1, error_handler_js_1, messages, patterns, cordova, MSG, DrumPattern, AppChing, appChing;
     var __moduleName = context_1 && context_1.id;
+    function device() { return window.device; }
+    function* classDemandEach(name, cnstr) {
+        const els = document.getElementsByClassName(name);
+        if (els.length == 0)
+            throw (`No elements with class '${name}'`);
+        for (let i = 0; i < els.length; ++i) {
+            assert_js_1.assert(els[i] instanceof cnstr);
+            yield els[i];
+        }
+    }
     function withElement(id, klass, func) {
         func(demandById(id, klass));
     }
@@ -123,7 +133,8 @@ System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js"
     }
     exports_1("programStateSerialize", programStateSerialize);
     function programStateDeserialize() {
-        // Note: onchange not necessary, as the user will always need to provide input to reinitialize the audiocontext.
+        // Note: most onchange not necessary, as the user will always need to provide input to reinitialize the
+        // audiocontext.
         const serialized = JSON.parse(window.localStorage.getItem("state"));
         if (serialized) {
             {
@@ -131,7 +142,7 @@ System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js"
                 const es = document.getElementsByTagName('input');
                 for (let i = 0; i < es.length; ++i) {
                     const e = es[i];
-                    if (ser[e.id] != undefined) {
+                    if (e && ser[e.id] != undefined) {
                         e.value = ser[e.id];
                     }
                 }
@@ -141,7 +152,7 @@ System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js"
                 const es = document.getElementsByTagName('textarea');
                 for (let i = 0; i < es.length; ++i) {
                     const e = es[i];
-                    if (ser[e.id] != undefined) {
+                    if (e && ser[e.id] != undefined) {
                         e.textContent = ser[e.id];
                     }
                 }
@@ -151,7 +162,7 @@ System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js"
                 const es = document.getElementsByTagName('select');
                 for (let i = 0; i < es.length; ++i) {
                     const e = es[i];
-                    if (ser[e.id] != undefined) {
+                    if (e && ser[e.id] != undefined) {
                         e.selectedIndex = ser[e.id];
                     }
                 }
@@ -205,7 +216,6 @@ System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js"
               along with this program.  If not, see <https://www.gnu.org/licenses/>.
             */
             cordova = window.cordova;
-            device = window.device;
             MSG = messages.makeMultilingual([new messages.MessagesThai(), new messages.MessagesEnglish()]);
             window.onerror = error_handler_js_1.errorHandler;
             DrumPattern = class DrumPattern {
@@ -299,6 +309,7 @@ System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js"
                     this.userPatternsUpdate();
                     select.value = (_a = window.localStorage.getItem("selected-pleyng")) !== null && _a !== void 0 ? _a : '';
                     del.disabled = select.selectedIndex == 0;
+                    patternDrum.value = window.localStorage.getItem(select.value);
                     patternDrum.addEventListener("change", () => this.onDrumPatternChange(patternDrum.value));
                     for (let [element, pattern] of presetsDrumPattern) {
                         element.addEventListener("click", () => {
@@ -316,7 +327,7 @@ System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js"
                         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                     }
                     catch (e) {
-                        if (device.platform == 'browser') {
+                        if (device().platform == 'browser') {
                             throw MSG.errorAudioContextWeb(e);
                         }
                         else {
@@ -349,7 +360,7 @@ System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js"
                     const quietNoiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.25, audioCtx.sampleRate);
                     const quietNoiseBufferData = quietNoiseBuffer.getChannelData(0);
                     for (var i = 0; i < quietNoiseBuffer.length; i += audioCtx.sampleRate / 100) {
-                        quietNoiseBufferData[Math.floor(i)] = (-1 + Math.random() * 2) * 0.0001;
+                        quietNoiseBufferData[Math.floor(i)] = (-1 + Math.random() * 2) * 0.00001;
                     }
                     this.quietNoise = audioCtx.createBufferSource();
                     this.quietNoise.buffer = quietNoiseBuffer;
@@ -402,6 +413,20 @@ System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js"
                     for (let i = 0; i < bpmMods.length; ++i) {
                         bpmMods[i].addEventListener("click", e => this.onBpmMod(e));
                     }
+                    for (const el of classDemandEach("chun-mod", HTMLButtonElement)) {
+                        el.addEventListener("click", () => {
+                            const val = Math.max(0, Number(this.eChun.value) + Number(el.dataset.mod));
+                            this.eChun.value = val.toString();
+                            this.bpmControl.chunSet(val);
+                        });
+                    }
+                    const eDlgPatternHelp = demandById("dialog-pattern-help");
+                    demandById("pattern-help").addEventListener("click", function () {
+                        if (eDlgPatternHelp.classList.contains("split-show"))
+                            eDlgPatternHelp.classList.remove("split-show");
+                        else
+                            eDlgPatternHelp.classList.add("split-show");
+                    });
                 }
                 userPatternsUpdate() {
                     withElement("patterns-user", HTMLSelectElement, (select) => {
@@ -431,6 +456,8 @@ System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js"
                     var _a;
                     this.bpmControl.stop();
                     this.bpmControl.change(this.getBpm(this.eBpm.value));
+                    if (this.drumPatternNext != null)
+                        this.drumPattern = this.drumPatternNext;
                     (_a = this.drumPattern) === null || _a === void 0 ? void 0 : _a.seek(this, 0);
                     this.ePlay.setAttribute('disabled', undefined);
                     this.eStop.removeAttribute('disabled');
@@ -460,6 +487,9 @@ System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js"
                 }
                 onPlay() {
                     var _a;
+                    if (device().platform != 'browser') {
+                        cordova.plugins.backgroundMode.enable();
+                    }
                     this.glongSet.kill();
                     this.bpmControl.stop();
                     this.bpmControl.change(this.getBpm(this.eBpm.value));
@@ -474,6 +504,9 @@ System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js"
                     }
                 }
                 onStop() {
+                    if (device().platform != 'browser') {
+                        cordova.plugins.backgroundMode.disable();
+                    }
                     window.clearTimeout(this.chupChupTimeout);
                     this.chupChupTimeout = null;
                     this.eStop.disabled = true;
@@ -483,7 +516,7 @@ System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js"
                 }
                 onTick() {
                     const currentTick = this.bpmControl.tick() - 1;
-                    const divisorChun = 2 ** (this.bpmControl.chun() + 1);
+                    const divisorChun = 2 ** (this.bpmControl.chun + 1);
                     if (currentTick % divisorChun == 0) {
                         this.glongSet.chup(0, 1);
                     }
@@ -591,36 +624,64 @@ System.register(["./bpm.js", "./glongset.js", "./instrument.js", "./patterns.js"
                     this.drumPatternNext = new DrumPattern(context);
                 }
             };
-            document.addEventListener("deviceready", () => {
-                document.addEventListener("pause", programStateSerialize);
-                document.addEventListener("resume", programStateDeserialize);
-                const allButtons = document.getElementsByTagName("button");
-                exports_1("appChing", appChing = new AppChing(document.getElementById("bpm"), document.getElementById("bpm-jing"), document.getElementById("chun"), document.getElementById("chun-jing"), document.getElementById('tune-glong'), document.getElementById("hong"), document.getElementById("play"), document.getElementById("stop"), document.getElementById("play-delay"), [
-                    document.getElementById("ching-visualize-0"),
-                    document.getElementById("ching-visualize-1"),
-                    document.getElementById("ching-visualize-2"),
-                    document.getElementById("ching-visualize-3")
-                ], document.getElementById("pattern-error")));
-                appChing.setupPreUserInteraction(demandById("pattern-drum", HTMLTextAreaElement), [
-                    [document.getElementById("pattern-none"), ""],
-                    [document.getElementById("pattern-lao"), patterns.pleyngDahmLao],
-                    [document.getElementById("pattern-khmen"), patterns.pleyngDahmKhmen],
-                    [document.getElementById("pattern-noyjaiyah"), patterns.dahmNoyJaiYah],
-                    [document.getElementById("pattern-omdeuk"), patterns.pleyngKhmenOmDteuk]
-                ]);
-                const setupFunc = (e) => {
-                    appChing.setup(document.getElementById("analyser"), document.getElementById("analyser-on"), document.getElementById("analyser-off"), document.getElementById("glongset"), document.getElementById("play-ching-closed"), document.getElementById("play-ching-open"), document.getElementsByClassName("play-drum"), document.getElementsByClassName("bpm-mod"), document.getElementById('vol-glong'), document.getElementById('vol-ching')).then(() => {
+            window.addEventListener("load", () => {
+                document.addEventListener("deviceready", () => {
+                    document.addEventListener("back", programStateSerialize);
+                    document.addEventListener("pause", programStateSerialize);
+                    document.addEventListener("resume", programStateDeserialize);
+                    document.getElementById("error").addEventListener("click", function () { this.style.display = "none"; });
+                    try {
+                        programStateDeserialize();
+                    }
+                    catch (msg) {
+                        error_handler_js_1.errorHandler("เจอปัญหาเมื่อโล๊ดสถานะโปรแกม: " + msg);
+                    }
+                    if (device().platform != 'browser') {
+                        cordova.plugins.backgroundMode.setDefaults({
+                            title: 'กำลังทำงานในพื้นหลัง',
+                            text: 'กำลังเล่นเสียง'
+                        });
+                        cordova.plugins.backgroundMode.overrideBackButton();
+                        cordova.plugins.backgroundMode.disableBatteryOptimizations();
+                    }
+                    const allButtons = document.getElementsByTagName("button");
+                    exports_1("appChing", appChing = new AppChing(document.getElementById("bpm"), document.getElementById("bpm-jing"), document.getElementById("chun"), document.getElementById("chun-jing"), document.getElementById('tune-glong'), document.getElementById("hong"), document.getElementById("play"), document.getElementById("stop"), document.getElementById("play-delay"), [
+                        document.getElementById("ching-visualize-0"),
+                        document.getElementById("ching-visualize-1"),
+                        document.getElementById("ching-visualize-2"),
+                        document.getElementById("ching-visualize-3")
+                    ], document.getElementById("pattern-error")));
+                    appChing.setupPreUserInteraction(demandById("pattern-drum", HTMLTextAreaElement), [
+                        [document.getElementById("pattern-none"), ""],
+                        [document.getElementById("pattern-lao"), patterns.pleyngDahmLao],
+                        [document.getElementById("pattern-khmen"), patterns.pleyngDahmKhmen],
+                        [document.getElementById("pattern-noyjaiyah"), patterns.dahmNoyJaiYah],
+                        [document.getElementById("pattern-omdeuk"), patterns.pleyngKhmenOmDteuk]
+                    ]);
+                    const setupAllButtons = () => {
+                        // iPad needs to have its audio triggered from a user event. Run setup on any button. 
+                        for (let i = 0; i < allButtons.length; ++i) {
+                            allButtons[i].addEventListener("click", setupFunc);
+                        }
+                    };
+                    const removeSetupAllButtons = () => {
                         for (let i = 0; i < allButtons.length; ++i) {
                             allButtons[i].removeEventListener("click", setupFunc);
                         }
-                        e.target.click();
-                    }).catch(error_handler_js_1.errorHandler);
-                };
-                // iPad needs to have its audio triggered from a user event. Run setup on any button, then re-trigger the
-                // original click event.
-                for (let i = 0; i < allButtons.length; ++i) {
-                    allButtons[i].addEventListener("click", setupFunc);
-                }
+                    };
+                    const setupFunc = e => {
+                        removeSetupAllButtons();
+                        appChing.setup(document.getElementById("analyser"), document.getElementById("analyser-on"), document.getElementById("analyser-off"), document.getElementById("glongset"), document.getElementById("play-ching-closed"), document.getElementById("play-ching-open"), document.getElementsByClassName("play-drum"), document.getElementsByClassName("bpm-mod"), document.getElementById('vol-glong'), document.getElementById('vol-ching')).then(() => {
+                            // Re-trigger the original click event as the setup function would have added new events.
+                            e.target.click();
+                        }).catch(ex => {
+                            e.preventDefault();
+                            setupAllButtons();
+                            error_handler_js_1.errorHandler(ex);
+                        });
+                    };
+                    setupAllButtons();
+                });
             });
         }
     };
